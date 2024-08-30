@@ -1,0 +1,86 @@
+Выполнение требуемых шагов для Django shell
+
+Команды создают пользователей, авторов, категории, посты и комментарии в приложении News Portal.
+
+
+python manage.py shell
+
+Команды для выполнения в Django shell
+
+Создание пользователей:
+from django.contrib.auth.models import User
+from news.models import Author, Category, Post, Comment
+
+# Создание двух пользователей
+user1 = User.objects.create_user(username='ivanov', password='password123', first_name='Иван', last_name='Иванов')
+user2 = User.objects.create_user(username='petrov', password='password123', first_name='Петр', last_name='Петров')
+
+Создание объектов модели Author, связанных с пользователями:
+# Создание авторов, связанных с пользователями
+author1 = Author.objects.create(user=user1)
+author2 = Author.objects.create(user=user2)
+
+Добавление категорий:
+# Создание категорий
+Category.objects.create(name='Спорт')
+Category.objects.create(name='Политика')
+Category.objects.create(name='Образование')
+Category.objects.create(name='Технологии')
+
+Добавление статей и новостей:
+# Создание статей и новостей
+post1 = Post.objects.create(author=author1, post_type='article', title='Новости спорта', text='Текст статьи про спорт.', rating=0)
+post2 = Post.objects.create(author=author2, post_type='article', title='Политические новости', text='Текст статьи про политику.', rating=0)
+post3 = Post.objects.create(author=author1, post_type='news', title='Технологические обновления', text='Текст новости про технологии.', rating=0)
+
+Присвоение категорий статьям и новостям:
+# Присвоение категорий постам
+sport = Category.objects.get(name='Спорт')
+politics = Category.objects.get(name='Политика')
+tech = Category.objects.get(name='Технологии')
+
+# Присвоение категорий
+post1.categories.add(sport)
+post2.categories.add(politics)
+post3.categories.add(tech, politics)  # Пример с двумя категориями
+
+Создание комментариев к постам:
+# Создание комментариев
+Comment.objects.create(post=post1, user=user2, text='Отличная статья про спорт!', rating=0)
+Comment.objects.create(post=post2, user=user1, text='Очень информативно!', rating=0)
+Comment.objects.create(post=post3, user=user1, text='Интересные новости технологий.', rating=0)
+Comment.objects.create(post=post1, user=user1, text='Согласен с автором.', rating=0)
+
+Использование функций like() и dislike() для изменения рейтингов:
+# Лайки и дизлайки постов и комментариев
+post1.like()
+post2.like()
+post2.like()
+post3.dislike()
+
+# Лайки и дизлайки комментариев
+comment1 = Comment.objects.get(text='Отличная статья про спорт!')
+comment1.like()
+comment2 = Comment.objects.get(text='Очень информативно!')
+comment2.dislike()
+
+Обновление рейтингов пользователей:
+# Обновление рейтингов авторов
+author1.update_rating()
+author2.update_rating()
+
+Вывод username и рейтинга лучшего пользователя:
+# Вывод username и рейтинга лучшего автора
+best_author = Author.objects.order_by('-rating').first()
+print(f'Лучший автор: {best_author.user.username}, Рейтинг: {best_author.rating}')
+
+Вывод информации о лучшей статье:
+# Вывод лучшей статьи
+best_post = Post.objects.order_by('-rating').first()
+print(f'Дата добавления: {best_post.created_at}, Автор: {best_post.author.user.username}, Рейтинг: {best_post.rating}, Заголовок: {best_post.title}, Превью: {best_post.preview()}')
+
+Вывод всех комментариев к лучшей статье:
+# Вывод всех комментариев к лучшей статье
+comments = Comment.objects.filter(post=best_post)
+for comment in comments:
+    print(f'Дата: {comment.created_at}, Пользователь: {comment.user.username}, Рейтинг: {comment.rating}, Текст: {comment.text}')
